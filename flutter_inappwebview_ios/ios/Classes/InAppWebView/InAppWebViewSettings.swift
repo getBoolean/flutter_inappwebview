@@ -28,6 +28,7 @@ public class InAppWebViewSettings: ISettings<InAppWebView> {
     var minimumFontSize = 0
     var useShouldInterceptAjaxRequest = false
     var interceptOnlyAsyncAjaxRequests = true
+    var useShouldInterceptRequest = false
     var useShouldInterceptFetchRequest = false
     var incognito = false
     var cacheEnabled = true

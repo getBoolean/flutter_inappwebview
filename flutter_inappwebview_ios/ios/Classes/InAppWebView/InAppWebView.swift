@@ -13,6 +13,7 @@ public class InAppWebView: WKWebView, UIScrollViewDelegate, WKUIDelegate,
                             WKNavigationDelegate, WKScriptMessageHandler, UIGestureRecognizerDelegate,
                             WKDownloadDelegate,
                             PullToRefreshDelegate,
+                            CustomURLProtocolDelegate,
                             Disposable {
     static let METHOD_CHANNEL_NAME_PREFIX = "com.pichillilorenzo/flutter_inappwebview_"
 
@@ -94,6 +95,21 @@ public class InAppWebView: WKWebView, UIScrollViewDelegate, WKUIDelegate,
         panGestureRecognizer = UIPanGestureRecognizer()
         panGestureRecognizer.delegate = self
         panGestureRecognizer.addTarget(self, action: #selector(endDraggingDetected))
+        
+        URLProtocol.registerClass(CustomURLProtocol.self)
+
+        if let cls = NSClassFromString("WKBrowsingContextController") {
+            let sel = NSSelectorFromString("registerSchemeForCustomProtocol:")
+            if cls.responds(to: sel) {
+                cls.perform(sel, with: "http", afterDelay: 0)
+                cls.perform(sel, with: "https", afterDelay: 0)
+            }
+        }
+    }
+    
+    public func interceptRequest(_ data: Data, response: URLResponse, forRequest request: URLRequest) {
+        // TODO: Platform channel
+        // channel?.invokeMethod("shouldInterceptRequest", arguments: arguments)
     }
     
     override public var frame: CGRect {
@@ -1061,6 +1077,16 @@ public class InAppWebView: WKWebView, UIScrollViewDelegate, WKUIDelegate,
             } else {
                 newSettings.useOnLoadResource = false
             }
+        }
+        
+        if #available(iOS 11.0, *) {
+            if newSettingsMap["useShouldInterceptRequest"] != nil && settings?.useShouldInterceptRequest != newSettings.useShouldInterceptRequest {
+            if let applePayAPIEnabled = settings?.applePayAPIEnabled, !applePayAPIEnabled {
+                CustomURLProtocol.delegate = self
+            } else {
+                newSettings.useShouldInterceptRequest = false
+            }
+        }
         }
         
         if newSettingsMap["useShouldInterceptAjaxRequest"] != nil && settings?.useShouldInterceptAjaxRequest != newSettings.useShouldInterceptAjaxRequest {
