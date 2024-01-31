@@ -54,6 +54,7 @@ public class InAppWebView: WKWebView, UIScrollViewDelegate, WKUIDelegate,
     var lastLongPressTouchPoint: CGPoint?
     
     var panGestureRecognizer: UIPanGestureRecognizer!
+    var customURLProtocol: CustomURLProtocol
     
     var lastTouchPoint: CGPoint?
     var lastTouchPointTimestamp = Int64(Date().timeIntervalSince1970 * 1000)
@@ -95,7 +96,7 @@ public class InAppWebView: WKWebView, UIScrollViewDelegate, WKUIDelegate,
         panGestureRecognizer = UIPanGestureRecognizer()
         panGestureRecognizer.delegate = self
         panGestureRecognizer.addTarget(self, action: #selector(endDraggingDetected))
-        
+        customURLProtocol.delegate = self
         URLProtocol.registerClass(CustomURLProtocol.self)
 
         if let cls = NSClassFromString("WKBrowsingContextController") {

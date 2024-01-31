@@ -12,6 +12,7 @@ class CustomURLProtocol: URLProtocol {
     var dataTask: URLSessionDataTask?
     var urlResponse: URLResponse?
     var receivedData: NSMutableData?
+    weak var delegate: CustomURLProtocolDelegate?
 
     // Check if this protocol can handle the given request
     override class func canInit(with request: URLRequest) -> Bool {
@@ -36,10 +37,11 @@ class CustomURLProtocol: URLProtocol {
         // Perform the request using URLSession
         dataTask = URLSession.shared.dataTask(with: newRequest as URLRequest, completionHandler: { [weak self] (data, response, error) in
             if let strongSelf = self {
-                if let data = data {
+                if let data = data, let response = response {
+                    strongSelf.delegate?.interceptRequest(data, response: response, forRequest: strongSelf.request)
                     strongSelf.receivedData = NSMutableData(data: data)
                     strongSelf.urlResponse = response
-                    strongSelf.client?.urlProtocol(strongSelf, didReceive: response!, cacheStoragePolicy: .notAllowed)
+                    strongSelf.client?.urlProtocol(strongSelf, didReceive: response, cacheStoragePolicy: .notAllowed)
                     strongSelf.client?.urlProtocol(strongSelf, didLoad: data)
                 }
                 
